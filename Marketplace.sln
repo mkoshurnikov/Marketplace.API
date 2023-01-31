@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.API", "Marketpl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.DAL", "Marketplace.DAL\Marketplace.DAL.csproj", "{34242A73-92A3-456B-B431-1AB0F4F9D667}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.BL", "Marketplace.BL\Marketplace.BL.csproj", "{A7033AB0-08E9-48B3-A8E7-C91A747F97C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.Tests", "Marketplace.Tests\Marketplace.Tests.csproj", "{1D8938D4-45D6-4758-9B34-B8F75F97D3EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{34242A73-92A3-456B-B431-1AB0F4F9D667}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34242A73-92A3-456B-B431-1AB0F4F9D667}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34242A73-92A3-456B-B431-1AB0F4F9D667}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7033AB0-08E9-48B3-A8E7-C91A747F97C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7033AB0-08E9-48B3-A8E7-C91A747F97C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7033AB0-08E9-48B3-A8E7-C91A747F97C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7033AB0-08E9-48B3-A8E7-C91A747F97C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D8938D4-45D6-4758-9B34-B8F75F97D3EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D8938D4-45D6-4758-9B34-B8F75F97D3EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D8938D4-45D6-4758-9B34-B8F75F97D3EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D8938D4-45D6-4758-9B34-B8F75F97D3EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
