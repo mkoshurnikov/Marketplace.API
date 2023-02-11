@@ -1,4 +1,5 @@
-﻿using MarketplaceBL.ModelsDTO;
+﻿using Marketplace.API.Service;
+using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.ResourceModels;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;
@@ -17,14 +18,16 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private UnitOfWork<MarketplaceDbContext> unitOfWork = new UnitOfWork<MarketplaceDbContext>();
-        private IUserInfoRepository userInfoRepository;
+        private UnitOfWork<MarketplaceDbContext> _unitOfWork;
+        private IUserInfoRepository _userInfoRepository;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly JwtService _jwtService;
         private ILogger<UsersController> _logger;
-        public UsersController(UserManager<IdentityUser> userManager, JwtService jwtService, ILogger<UsersController> logger)
+        public UsersController(UserManager<IdentityUser> userManager, JwtService jwtService, ILogger<UsersController> logger, 
+            UnitOfWorkService unitOfWorkService)
         {
-            userInfoRepository = new UserInfoRepository(unitOfWork);
+            _unitOfWork = unitOfWorkService.GetUnitOfWork();
+            _userInfoRepository = new UserInfoRepository(_unitOfWork);
             _userManager = userManager;
             _jwtService = jwtService;
             _logger = logger;
@@ -34,14 +37,14 @@ namespace MarketplacePL.Controllers
         [HttpGet]
         public IEnumerable<UserDTO> Get()
         {
-            return userInfoRepository.GetAll().Select(u => ModelsToDTO.UserInfoToDTO(u));
+            return _userInfoRepository.GetAll().Select(u => ModelsToDTO.UserInfoToDTO(u));
         }
 
         // GET api/<UsersController>/5
         [HttpGet("{userName}")]
         public ActionResult<UserDTO> Get(string userName)
         {
-            UserInfo? userInfo = userInfoRepository.GetByUserName(userName);
+            UserInfo? userInfo = _userInfoRepository.GetByUserName(userName);
             if (userInfo != null)
             {
                 UserDTO userDTO = ModelsToDTO.UserInfoToDTO(userInfo);
@@ -54,7 +57,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("byEmail/{email}")]
         public ActionResult<UserDTO> GetByEmail(string email)
         {
-            UserInfo? userInfo = userInfoRepository.GetUserByEmail(email);
+            UserInfo? userInfo = _userInfoRepository.GetUserByEmail(email);
             if (userInfo != null)
             {
                 UserDTO userDTO = ModelsToDTO.UserInfoToDTO(userInfo);
@@ -67,7 +70,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("byFirstname/{firstname}")]
         public ActionResult<IEnumerable<UserDTO>> GetByFirstName(string firstName)
         {
-            var usersDTO = userInfoRepository.GetByUserFirstname(firstName).Select(u => ModelsToDTO.UserInfoToDTO(u)).ToList();
+            var usersDTO = _userInfoRepository.GetByUserFirstname(firstName).Select(u => ModelsToDTO.UserInfoToDTO(u)).ToList();
             if (usersDTO.Any())
             {
                 return usersDTO;
@@ -79,7 +82,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("byLastname/{lastname}")]
         public ActionResult<IEnumerable<UserDTO>> GetByLastname(string lastname)
         {
-            var usersDTO = userInfoRepository.GetByUserFirstname(lastname).Select(u => ModelsToDTO.UserInfoToDTO(u)).ToList();
+            var usersDTO = _userInfoRepository.GetByUserFirstname(lastname).Select(u => ModelsToDTO.UserInfoToDTO(u)).ToList();
             if (usersDTO.Any())
             {
                 return usersDTO;
@@ -110,10 +113,10 @@ namespace MarketplacePL.Controllers
             }
 
             UserInfo userInfo = ModelsToDTO.UserDTOtoDbModel(user);
-            unitOfWork.CreateTransaction();
-            userInfoRepository.Insert(userInfo);
-            unitOfWork.Save();
-            unitOfWork.Commit();
+            _unitOfWork.CreateTransaction();
+            _userInfoRepository.Insert(userInfo);
+            _unitOfWork.Save();
+            _unitOfWork.Commit();
 
             _logger.LogInformation($"New user with userName: {user.UserName} has been registered.");
 

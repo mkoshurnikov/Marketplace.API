@@ -1,4 +1,5 @@
-﻿using MarketplaceBL.ModelsDTO;
+﻿using Marketplace.API.Service;
+using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;
 using MarketplaceDAL.Data;
@@ -14,13 +15,14 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class AdvTypesController : ControllerBase
     {
-        private UnitOfWork<MarketplaceDbContext> unitOfWork = new UnitOfWork<MarketplaceDbContext>();
-        private IAdvTypeRepository advTypeRepository;
-        private ILogger<AdvTypesController> _logger;
+        private readonly UnitOfWork<MarketplaceDbContext> _unitOfWork;
+        private readonly IAdvTypeRepository _advTypeRepository;
+        private readonly ILogger<AdvTypesController> _logger;
 
-        public AdvTypesController(ILogger<AdvTypesController> logger)
+        public AdvTypesController(ILogger<AdvTypesController> logger, UnitOfWorkService unitOfWorkService)
         {
-            advTypeRepository = new AdvTypeRepository(unitOfWork);
+            _unitOfWork = unitOfWorkService.GetUnitOfWork();
+            _advTypeRepository = new AdvTypeRepository(_unitOfWork);
             _logger = logger;
         }
 
@@ -28,7 +30,7 @@ namespace MarketplacePL.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var advTypes = advTypeRepository.GetAll().Select(at => ModelsToDTO.AdvTypeToDTO(at));
+            var advTypes = _advTypeRepository.GetAll().Select(at => ModelsToDTO.AdvTypeToDTO(at));
             return Ok(advTypes);
         }
 
@@ -36,7 +38,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            AdvType advType = advTypeRepository.GetById(id);
+            AdvType advType = _advTypeRepository.GetById(id);
             if (advType != null)
             {
                 AdvTypeDTO advTypeDTO = ModelsToDTO.AdvTypeToDTO(advType);
@@ -50,7 +52,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("byName/{name}")]
         public ActionResult<AdvTypeDTO> GetTypeByName(string name)
         {
-            AdvType? advType = advTypeRepository.GetTypeByName(name);
+            AdvType? advType = _advTypeRepository.GetTypeByName(name);
             if (advType != null)
             {
                 return ModelsToDTO.AdvTypeToDTO(advType);
@@ -65,7 +67,7 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
                     AdvType advType = new AdvType
@@ -73,9 +75,9 @@ namespace MarketplacePL.Controllers
                         AdvTypeName = obj.AdvTypeName
                     };
 
-                    advTypeRepository.Insert(advType);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _advTypeRepository.Insert(advType);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     _logger.LogInformation("New advertisement type has been added.");
 
@@ -85,7 +87,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -98,7 +100,7 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
                     AdvType advType = new AdvType
@@ -106,9 +108,9 @@ namespace MarketplacePL.Controllers
                         Id = obj.Id,
                         AdvTypeName = obj.AdvTypeName
                     };
-                    advTypeRepository.Update(advType);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _advTypeRepository.Update(advType);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     _logger.LogInformation($"AdvType(id = {advType.Id} has been changed.");
 
@@ -118,7 +120,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -131,15 +133,15 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
-                    var advType = advTypeRepository.GetById(id);
+                    var advType = _advTypeRepository.GetById(id);
                     if (advType != null)
                     {
-                        advTypeRepository.Delete(advType);
-                        unitOfWork.Save();
-                        unitOfWork.Commit();
+                        _advTypeRepository.Delete(advType);
+                        _unitOfWork.Save();
+                        _unitOfWork.Commit();
 
                         _logger.LogInformation($"AdvType(id = {id} has been deleted.");
 
@@ -150,7 +152,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
