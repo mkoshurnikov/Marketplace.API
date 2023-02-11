@@ -1,6 +1,6 @@
-﻿using Marketplace.API.Services;
+﻿using Marketplace.API.ResourceModels;
+using Marketplace.API.Services;
 using MarketplaceBL.ModelsDTO;
-using MarketplaceBL.ResourceModels;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;
 using MarketplaceDAL.Data;
