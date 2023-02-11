@@ -1,4 +1,5 @@
-using Marketplace.API.Service;
+using Marketplace.API.Configurations;
+using Marketplace.API.Services;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,39 +18,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddSingleton<UnitOfWorkService>();
 
-string? jwtAudience = builder.Configuration["Jwt:Audience"];
-string? jwtIssuer = builder.Configuration["Jwt:Issuer"];
-string? jwtKey = builder.Configuration["Jwt:Key"];
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidAudience = jwtAudience,
-            ValidIssuer = jwtIssuer,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtKey)
-            )
-        };
-    });
+    .AddJwtBearerConfiguration(builder.Configuration["Jwt:Issuer"], builder.Configuration["Jwt:Audience"], builder.Configuration["Jwt:Key"]);
 
-string? connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<MarketplaceDbContext>();
 builder.Services
-    .AddIdentityCore<IdentityUser>(options => {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.User.RequireUniqueEmail = true;
-        options.Password.RequireDigit = false;
-        options.Password.RequiredLength = 6;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireLowercase = false;
-    })
+    .AddIdentityConfiguration()
     .AddEntityFrameworkStores<MarketplaceDbContext>();
 var app = builder.Build();
 
