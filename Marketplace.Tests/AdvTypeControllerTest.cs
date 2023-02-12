@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
+using Marketplace.API.Services;
 
 namespace Marketplace.Test
 {
@@ -13,7 +14,9 @@ namespace Marketplace.Test
         public void WhenGettingAllAdvTypes_ThenReturnAllAdvTypes()
         {
             var logger = new Logger<AdvTypesController>(new LoggerFactory());
-            var advTypeController = new AdvTypesController(logger);
+            var unitOfWorkService = new UnitOfWorkService();
+
+            var advTypeController = new AdvTypesController(logger, unitOfWorkService);
 
             var result = advTypeController.Get() as ObjectResult;
             var advTypes = result?.Value as IEnumerable<AdvTypeDTO>;
@@ -28,7 +31,9 @@ namespace Marketplace.Test
         public void WhenGettingAdvTypeById_ThenReturnAdvType()
         {
             var logger = new Logger<AdvTypesController>(new LoggerFactory());
-            var advTypeController = new AdvTypesController(logger);
+            var unitOfWorkService = new UnitOfWorkService();
+
+            var advTypeController = new AdvTypesController(logger, unitOfWorkService);
 
             int id = 1;
             var result = advTypeController.Get(id) as ObjectResult;

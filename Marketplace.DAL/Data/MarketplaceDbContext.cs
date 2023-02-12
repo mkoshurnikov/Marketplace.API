@@ -12,6 +12,11 @@ namespace MarketplaceDAL.Data
         {
             //Database.EnsureCreated();
         }
+        public MarketplaceDbContext(DbContextOptions options)
+            : base(options)
+        {
+            //Database.EnsureCreated();
+        }
         public DbSet<UserInfo> UsersInfo { get; set; }
         public DbSet<AdvType> AdvTypes { get; set; }
         public DbSet<Advertisement> Advertisements { get; set;}
@@ -19,7 +24,10 @@ namespace MarketplaceDAL.Data
         public object Configuration { get; internal set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=MarketplaceDb;Trusted_Connection=True;");
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=MarketplaceDb;Trusted_Connection=True;");
+            }
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
