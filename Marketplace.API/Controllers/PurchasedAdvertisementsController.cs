@@ -42,7 +42,7 @@ namespace MarketplacePL.Controllers
                 return Ok(ModelsToDTO.PurchasedAdvertisementToDTO(purchasedAdvertisement));
             }
             return BadRequest();
-
+        }
         // GET api/<PurchasedAdvertisementController>/byUserId/5
         [Authorize]
         [HttpGet("byUserId/{id}")]
