@@ -34,10 +34,14 @@ namespace MarketplacePL.Controllers
         // GET api/<PurchasedAdvertisementController>/5
         [Authorize]
         [HttpGet("{id}")]
-        public PurchasedAdvertisementDTO Get(int id)
+        public IActionResult Get(int id)
         {
-            return ModelsToDTO.PurchasedAdvertisementToDTO(_purchasedAdvRepository.GetById(id));
-        }
+            var purchasedAdvertisement = _purchasedAdvRepository.GetById(id);
+            if (purchasedAdvertisement != null)
+            {
+                return Ok(ModelsToDTO.PurchasedAdvertisementToDTO(purchasedAdvertisement));
+            }
+            return BadRequest();
 
         // GET api/<PurchasedAdvertisementController>/byUserId/5
         [Authorize]
