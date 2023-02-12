@@ -6,8 +6,11 @@ namespace Marketplace.API.Configurations
 {
     public static class JwtBearerConfiguration
     {
-        public static AuthenticationBuilder AddJwtBearerConfiguration(this AuthenticationBuilder builder, string issuer, string audience, string key)
+        public static AuthenticationBuilder AddJwtBearerConfiguration(this AuthenticationBuilder builder, ConfigurationManager manager)
         {
+            string issuer = manager["Jwt:Issuer"];
+            string audience = manager["Jwt:Audience"];
+            string key = manager["Jwt:Key"];
 
             return builder.AddJwtBearer(options =>
             {
