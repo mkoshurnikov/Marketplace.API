@@ -2,13 +2,6 @@
 using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Data;
-using MarketplaceDAL.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Marketplace.Tests
