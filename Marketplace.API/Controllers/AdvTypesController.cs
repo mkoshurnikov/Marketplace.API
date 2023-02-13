@@ -1,11 +1,5 @@
-﻿using Marketplace.API.Services;
+﻿using Marketplace.BL.Abstractions;
 using MarketplaceBL.ModelsDTO;
-using MarketplaceBL.Services;
-using MarketplaceDAL.Contracts;
-using MarketplaceDAL.Data;
-using MarketplaceDAL.Models;
-using MarketplaceDAL.Repositories;
-using MarketplaceDAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,82 +9,46 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class AdvTypesController : ControllerBase
     {
-        private readonly UnitOfWork<MarketplaceDbContext> _unitOfWork;
-        private readonly IAdvTypeRepository _advTypeRepository;
-        private readonly ILogger<AdvTypesController> _logger;
+        private readonly IServiceManager _serviceManager;
 
-        public AdvTypesController(ILogger<AdvTypesController> logger, UnitOfWorkService unitOfWorkService)
+        public AdvTypesController(IServiceManager serviceManager)
         {
-            _unitOfWork = unitOfWorkService.GetUnitOfWork();
-            _advTypeRepository = new AdvTypeRepository(_unitOfWork);
-            _logger = logger;
+            _serviceManager = serviceManager;
         }
 
         // GET: api/<AdvTypeController>
         [HttpGet]
-        public IActionResult Get()
+        public IEnumerable<AdvTypeDTO> Get()
         {
-            var advTypes = _advTypeRepository.GetAll().Select(at => ModelsToDTO.AdvTypeToDTO(at));
-            return Ok(advTypes);
+            return _serviceManager.AdvTypeService.Get();
         }
 
         // GET api/<AdvTypeController>/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            AdvType advType = _advTypeRepository.GetById(id);
-            if (advType != null)
-            {
-                AdvTypeDTO advTypeDTO = ModelsToDTO.AdvTypeToDTO(advType);
-                return Ok(advTypeDTO);
-            }
-            return NotFound();
+            var advType = _serviceManager.AdvTypeService.Get(id);
+
+            return Ok(advType);
         }
 
         // GET api/<AdvTypeController>/byName/name
         [Authorize]
         [HttpGet("byName/{name}")]
-        public ActionResult<AdvTypeDTO> GetTypeByName(string name)
+        public IActionResult GetTypeByName(string name)
         {
-            AdvType? advType = _advTypeRepository.GetTypeByName(name);
-            if (advType != null)
-            {
-                return ModelsToDTO.AdvTypeToDTO(advType);
-            }
-            return NotFound();
+            var advType = _serviceManager.AdvTypeService.GetTypeByName(name);
+
+            return Ok(advType);
         }
 
         // POST api/<AdvTypeController>
-        
         [HttpPost]
         public IActionResult Post([FromBody] AdvTypeDTO obj)
         {
-            try
-            {
-                _unitOfWork.CreateTransaction();
-                if (ModelState.IsValid)
-                {
-                    AdvType advType = new AdvType
-                    {
-                        AdvTypeName = obj.AdvTypeName
-                    };
+            var newAdvType = _serviceManager.AdvTypeService.Post(obj);
 
-                    _advTypeRepository.Insert(advType);
-                    _unitOfWork.Save();
-                    _unitOfWork.Commit();
-
-                    _logger.LogInformation("New advertisement type has been added.");
-
-                    return Ok();
-                }
-                return BadRequest(ModelState);
-            }
-            catch (Exception ex)
-            {
-                _unitOfWork.Rollback();
-                Console.WriteLine(ex.Message);
-                return BadRequest();
-            }
+            return Ok(newAdvType);
         }
 
         // PUT api/<AdvTypeController>
@@ -98,32 +56,9 @@ namespace MarketplacePL.Controllers
         [HttpPut]
         public IActionResult Put([FromBody] AdvTypeDTO obj)
         {
-            try
-            {
-                _unitOfWork.CreateTransaction();
-                if (ModelState.IsValid)
-                {
-                    AdvType advType = new AdvType
-                    {
-                        Id = obj.Id,
-                        AdvTypeName = obj.AdvTypeName
-                    };
-                    _advTypeRepository.Update(advType);
-                    _unitOfWork.Save();
-                    _unitOfWork.Commit();
+            var editedAdvType = _serviceManager.AdvTypeService.Put(obj);
 
-                    _logger.LogInformation($"AdvType(id = {advType.Id} has been changed.");
-
-                    return Ok();
-                }
-                return BadRequest(ModelState);
-            }
-            catch (Exception ex)
-            {
-                _unitOfWork.Rollback();
-                Console.WriteLine(ex.Message);
-                return BadRequest();
-            }
+            return NoContent();
         }
 
         // DELETE api/<AdvTypeController>/5
@@ -131,31 +66,9 @@ namespace MarketplacePL.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            try
-            {
-                _unitOfWork.CreateTransaction();
-                if (ModelState.IsValid)
-                {
-                    var advType = _advTypeRepository.GetById(id);
-                    if (advType != null)
-                    {
-                        _advTypeRepository.Delete(advType);
-                        _unitOfWork.Save();
-                        _unitOfWork.Commit();
+            _serviceManager.AdvTypeService.Delete(id);
 
-                        _logger.LogInformation($"AdvType(id = {id} has been deleted.");
-
-                        return Ok();
-                    }
-                }
-                return BadRequest(ModelState);
-            }
-            catch (Exception ex)
-            {
-                _unitOfWork.Rollback();
-                Console.WriteLine(ex.Message);
-                return BadRequest();
-            }
+            return NoContent();
         }
     }
 }
