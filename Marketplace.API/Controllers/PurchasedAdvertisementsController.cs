@@ -1,4 +1,4 @@
-﻿using Marketplace.API.Service;
+﻿using Marketplace.API.Services;
 using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;

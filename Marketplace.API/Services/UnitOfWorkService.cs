@@ -1,7 +1,7 @@
 ﻿using MarketplaceDAL.Data;
 using MarketplaceDAL.UnitOfWork;
 
-namespace Marketplace.API.Service
+namespace Marketplace.API.Services
 {
     public class UnitOfWorkService
     {
