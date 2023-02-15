@@ -1,5 +1,7 @@
 using Marketplace.API.Configurations;
 using Marketplace.API.Services;
+using Marketplace.BL.Abstractions;
+using Marketplace.BL.Services;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddSingleton<UnitOfWorkService>();
 

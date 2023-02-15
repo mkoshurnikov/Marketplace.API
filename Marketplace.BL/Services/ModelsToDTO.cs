@@ -38,11 +38,8 @@ namespace MarketplaceBL.Services
 
             return dbEntity;
         }
-        public static AdvTypeDTO? AdvTypeToDTO(AdvType entity)
+        public static AdvTypeDTO AdvTypeToDTO(AdvType entity)
         {
-            if (entity == null)
-                return null;
-
             return new AdvTypeDTO
             {
                 Id = entity.Id,

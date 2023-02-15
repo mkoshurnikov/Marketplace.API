@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Marketplace.API.ResourceModels
+namespace MarketplaceBL.Models.AuthenticationModels
 {
     public class AuthenticationRequest
     {

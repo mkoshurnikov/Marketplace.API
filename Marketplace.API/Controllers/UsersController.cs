@@ -1,16 +1,10 @@
-﻿using Marketplace.API.ResourceModels;
-using Marketplace.API.Services;
+﻿using Marketplace.BL.Abstractions;
+using MarketplaceBL.Models.AuthenticationModels;
 using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
-using MarketplaceDAL.Contracts;
-using MarketplaceDAL.Data;
 using MarketplaceDAL.Models;
-using MarketplaceDAL.Repositories;
-using MarketplaceDAL.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MarketplacePL.Controllers
 {
@@ -18,137 +12,65 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private UnitOfWork<MarketplaceDbContext> _unitOfWork;
-        private IUserInfoRepository _userInfoRepository;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly JwtService _jwtService;
-        private ILogger<UsersController> _logger;
-        public UsersController(UserManager<IdentityUser> userManager, JwtService jwtService, ILogger<UsersController> logger, 
-            UnitOfWorkService unitOfWorkService)
+        private readonly IServiceManager _serviceManager;
+        public UsersController(IServiceManager serviceManager)
         {
-            _unitOfWork = unitOfWorkService.GetUnitOfWork();
-            _userInfoRepository = new UserInfoRepository(_unitOfWork);
-            _userManager = userManager;
-            _jwtService = jwtService;
-            _logger = logger;
+            _serviceManager = serviceManager;
         }
 
         // GET: api/<UsersController>
         [HttpGet]
         public IEnumerable<UserDTO> Get()
         {
-            return _userInfoRepository.GetAll().Select(u => ModelsToDTO.UserInfoToDTO(u));
+            return _serviceManager.UserService.Get();
         }
 
         // GET api/<UsersController>/5
         [HttpGet("{userName}")]
-        public ActionResult<UserDTO> Get(string userName)
+        public ActionResult Get(string userName)
         {
-            UserInfo? userInfo = _userInfoRepository.GetByUserName(userName);
-            if (userInfo != null)
-            {
-                UserDTO userDTO = ModelsToDTO.UserInfoToDTO(userInfo);
-                return userDTO;
-            }
-            return NotFound();
+            var user = _serviceManager.UserService.Get(userName);
+
+            return Ok(user);
         }
 
         // GET api/<UsersController>/byEmail/email
         [HttpGet("byEmail/{email}")]
-        public ActionResult<UserDTO> GetByEmail(string email)
+        public ActionResult GetByEmail(string email)
         {
-            UserInfo? userInfo = _userInfoRepository.GetUserByEmail(email);
-            if (userInfo != null)
-            {
-                UserDTO userDTO = ModelsToDTO.UserInfoToDTO(userInfo);
-                return userDTO;
-            }
-            return NotFound();
+            var user = _serviceManager.UserService.GetByEmail(email);
+
+            return Ok(user);
         }
 
         // GET api/<UsersController>/byFirstName/firstName
         [HttpGet("byFirstname/{firstname}")]
-        public ActionResult<IEnumerable<UserDTO>> GetByFirstName(string firstName)
+        public IEnumerable<UserDTO> GetByFirstName(string firstName)
         {
-            var usersDTO = _userInfoRepository.GetByUserFirstname(firstName).Select(u => ModelsToDTO.UserInfoToDTO(u)).ToList();
-            if (usersDTO.Any())
-            {
-                return usersDTO;
-            }
-            return NotFound();
+            return _serviceManager.UserService.GetByFirstName(firstName);
         }
 
         // GET api/<UsersController>/byLastname/lastname
         [HttpGet("byLastname/{lastname}")]
-        public ActionResult<IEnumerable<UserDTO>> GetByLastname(string lastname)
+        public IEnumerable<UserDTO> GetByLastname(string lastName)
         {
-            var usersDTO = _userInfoRepository.GetByUserFirstname(lastname).Select(u => ModelsToDTO.UserInfoToDTO(u)).ToList();
-            if (usersDTO.Any())
-            {
-                return usersDTO;
-            }
-            return NotFound();
+            return _serviceManager.UserService.GetByFirstName(lastName);
         }
 
         // POST api/<UsersController>
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] UserDTO? user)
+        public async Task<ActionResult> Post([FromBody] UserDTO? userInfo)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var user = await _serviceManager.UserService.Post(userInfo);
 
-            IdentityUser newUser = new IdentityUser() 
-            { 
-                UserName = user.UserName, 
-                Email = user.Email 
-            };
-            
-            var result = await _userManager.CreateAsync(newUser, user.Password);
-
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            UserInfo userInfo = ModelsToDTO.UserDTOtoDbModel(user);
-            _unitOfWork.CreateTransaction();
-            _userInfoRepository.Insert(userInfo);
-            _unitOfWork.Save();
-            _unitOfWork.Commit();
-
-            _logger.LogInformation($"New user with userName: {user.UserName} has been registered.");
-
-            return Ok();
+            return Ok(user);
         }
 
         // POST: api/<UsersController>/BearerToken
         [HttpPost("BearerToken")]
-        public async Task<ActionResult<AuthenticationResponse>> CreateBearerToken(AuthenticationRequest request)
+        public async Task<ActionResult> CreateBearerToken(AuthenticationRequest request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Bad credentials");
-            }
-
-            var user = await _userManager.FindByNameAsync(request.UserName);
-
-            if (user == null)
-            {
-                return BadRequest("Bad credentials");
-            }
-
-            var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
-
-            if (!isPasswordValid)
-            {
-                return BadRequest("Bad credentials");
-            }
-
-            var token = _jwtService.CreateToken(user);
-
-            _logger.LogInformation($"New token for user with userName: {request.UserName} has been created.");
+            var token = await _serviceManager.UserService.CreateBearerToken(request);
 
             return Ok(token);
         }
@@ -157,7 +79,7 @@ namespace MarketplacePL.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            _logger.LogWarning($"TRYING TO DELETE USER WITH Id: {id}.");
+            _serviceManager.UserService.Delete(id);
 
             return StatusCode(405);
         }

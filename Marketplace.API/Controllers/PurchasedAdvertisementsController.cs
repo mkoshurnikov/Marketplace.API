@@ -1,11 +1,10 @@
-﻿using Marketplace.API.Services;
+﻿using Marketplace.BL.Abstractions;
+using Marketplace.BL.Services;
 using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;
 using MarketplaceDAL.Data;
 using MarketplaceDAL.Models;
-using MarketplaceDAL.Repositories;
-using MarketplaceDAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,12 +14,11 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class PurchasedAdvertisementsController : ControllerBase
     {
-        private readonly UnitOfWork<MarketplaceDbContext> _unitOfWork;
-        private readonly IPurchasedArvertisementRepository _purchasedAdvRepository;
-        public PurchasedAdvertisementsController(UnitOfWorkService unitOfWorkService)
+        private readonly IServiceManager _serviceManager;
+
+        public PurchasedAdvertisementsController(IServiceManager serviceManager)
         {
-            _unitOfWork = unitOfWorkService.GetUnitOfWork();
-            _purchasedAdvRepository = new PurchasedAvertisementRepository(_unitOfWork);
+            _serviceManager = serviceManager;
         }
 
         // GET: api/<PurchasedAdvertisementController>
@@ -28,7 +26,7 @@ namespace MarketplacePL.Controllers
         [HttpGet]
         public IEnumerable<PurchasedAdvertisementDTO> Get()
         {
-            return _purchasedAdvRepository.GetAll().Select(p => ModelsToDTO.PurchasedAdvertisementToDTO(p));
+            return _serviceManager.PurchasedAdvertisementService.Get();
         }
 
         // GET api/<PurchasedAdvertisementController>/5
@@ -36,32 +34,26 @@ namespace MarketplacePL.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            var purchasedAdvertisement = _purchasedAdvRepository.GetById(id);
-            if (purchasedAdvertisement != null)
-            {
-                return Ok(ModelsToDTO.PurchasedAdvertisementToDTO(purchasedAdvertisement));
-            }
-            return BadRequest();
+            var adv = _serviceManager.PurchasedAdvertisementService.Get(id);
+
+            return Ok(adv);
         }
         // GET api/<PurchasedAdvertisementController>/byUserId/5
         [Authorize]
         [HttpGet("byUserId/{id}")]
         public IEnumerable<PurchasedAdvertisementDTO> GetByUserId(int id)
         {
-            return _purchasedAdvRepository.GetByUserId(id).Select(p => ModelsToDTO.PurchasedAdvertisementToDTO(p));
+            return _serviceManager.PurchasedAdvertisementService.GetByUserId(id);
         }
 
         // GET api/<PurchasedAdvertisementController>/byAdvertisementId/5
         [Authorize]
         [HttpGet("byAdvertisementId/{id}")]
-        public ActionResult<PurchasedAdvertisementDTO> GetByAdvertisementId(int id)
+        public IActionResult GetByAdvertisementId(int id)
         {
-            PurchasedAdvertisement? purchasedAdv = _purchasedAdvRepository.GetByAdvertisementId(id);
-            if (purchasedAdv != null)
-            {
-                return ModelsToDTO.PurchasedAdvertisementToDTO(purchasedAdv);
-            }
-            return NotFound();
+            var adv = _serviceManager.PurchasedAdvertisementService.GetByAdvertisementId(id);
+
+            return Ok(adv);
         }
 
         // POST api/<PurchasedAdvertisementController>
@@ -69,31 +61,9 @@ namespace MarketplacePL.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] PurchasedAdvertisementDTO obj)
         {
-            try
-            {
-                _unitOfWork.CreateTransaction();
-                if (ModelState.IsValid)
-                {
-                    PurchasedAdvertisement purchasedAdv = new PurchasedAdvertisement
-                    {
-                        PurchasedByUserId = obj.PurchasedByUserId,
-                        AdvertisementId = obj.AdvertisementId,
-                        PurchaseDate = obj.PurchaseDate
-                    };
-                    _purchasedAdvRepository.Insert(purchasedAdv);
-                    _unitOfWork.Save();
-                    _unitOfWork.Commit();
+            var newAdv = _serviceManager.PurchasedAdvertisementService.Post(obj);
 
-                    return Ok();
-                }
-                return BadRequest(ModelState);
-            }
-            catch (Exception ex)
-            {
-                _unitOfWork.Rollback();
-                Console.WriteLine(ex.Message);
-                return BadRequest();
-            }
+            return Ok(newAdv);
         }
 
         // PUT api/<PurchasedAdvertisementController>/5
@@ -101,32 +71,9 @@ namespace MarketplacePL.Controllers
         [HttpPut("{id}")]
         public ActionResult Put([FromBody] PurchasedAdvertisement obj)
         {
-            try
-            {
-                _unitOfWork.CreateTransaction();
-                if (ModelState.IsValid)
-                {
-                    PurchasedAdvertisement purchasedAdv = new PurchasedAdvertisement
-                    {
-                        Id = obj.Id,
-                        PurchasedByUserId = obj.PurchasedByUserId,
-                        AdvertisementId = obj.AdvertisementId,
-                        PurchaseDate = obj.PurchaseDate
-                    };
-                    _purchasedAdvRepository.Update(purchasedAdv);
-                    _unitOfWork.Save();
-                    _unitOfWork.Commit();
+            var newAdv = _serviceManager.PurchasedAdvertisementService.Put(obj);
 
-                    return Ok();
-                }
-                return BadRequest(ModelState);
-            }
-            catch (Exception ex)
-            {
-                _unitOfWork.Rollback();
-                Console.WriteLine(ex.Message);
-                return BadRequest();
-            }
+            return NoContent();
         }
 
         // DELETE api/<PurchasedAdvertisementController>/5
@@ -134,29 +81,9 @@ namespace MarketplacePL.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            try
-            {
-                _unitOfWork.CreateTransaction();
-                if (ModelState.IsValid)
-                {
-                    var entity = _purchasedAdvRepository.GetById(id);
-                    if (entity != null)
-                    {
-                        _purchasedAdvRepository.Delete(entity);
-                        _unitOfWork.Save();
-                        _unitOfWork.Commit();
+            _serviceManager.PurchasedAdvertisementService.Delete(id);
 
-                        return Ok();
-                    }
-                }
-                return BadRequest(ModelState);
-            }
-            catch (Exception ex)
-            {
-                _unitOfWork.Rollback();
-                Console.WriteLine(ex.Message);
-                return BadRequest();
-            }
+            return NoContent();
         }
     }
 }
