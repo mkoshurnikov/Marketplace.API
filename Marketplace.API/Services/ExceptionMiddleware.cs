@@ -1,5 +1,4 @@
 ﻿using Marketplace.API.ResourceModels;
-using System.Net;
 
 namespace Marketplace.API.Services
 {

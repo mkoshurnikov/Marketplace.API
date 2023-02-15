@@ -1,12 +1,5 @@
 ﻿using MarketplaceBL.ModelsDTO;
-using MarketplaceDAL.Contracts;
 using MarketplaceDAL.Models;
-using MarketplaceDAL.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MarketplaceBL.Services
 {
