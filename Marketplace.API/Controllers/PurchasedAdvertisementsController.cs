@@ -1,4 +1,5 @@
-﻿using MarketplaceBL.ModelsDTO;
+﻿using Marketplace.API.Service;
+using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;
 using MarketplaceDAL.Data;
@@ -14,11 +15,12 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class PurchasedAdvertisementsController : ControllerBase
     {
-        private UnitOfWork<MarketplaceDbContext> unitOfWork = new UnitOfWork<MarketplaceDbContext>();
-        private IPurchasedArvertisementRepository purchasedAdvRepository;
-        public PurchasedAdvertisementsController()
+        private readonly UnitOfWork<MarketplaceDbContext> _unitOfWork;
+        private readonly IPurchasedArvertisementRepository _purchasedAdvRepository;
+        public PurchasedAdvertisementsController(UnitOfWorkService unitOfWorkService)
         {
-            purchasedAdvRepository = new PurchasedAvertisementRepository(unitOfWork);
+            _unitOfWork = unitOfWorkService.GetUnitOfWork();
+            _purchasedAdvRepository = new PurchasedAvertisementRepository(_unitOfWork);
         }
 
         // GET: api/<PurchasedAdvertisementController>
@@ -26,7 +28,7 @@ namespace MarketplacePL.Controllers
         [HttpGet]
         public IEnumerable<PurchasedAdvertisementDTO> Get()
         {
-            return purchasedAdvRepository.GetAll().Select(p => ModelsToDTO.PurchasedAdvertisementToDTO(p));
+            return _purchasedAdvRepository.GetAll().Select(p => ModelsToDTO.PurchasedAdvertisementToDTO(p));
         }
 
         // GET api/<PurchasedAdvertisementController>/5
@@ -34,7 +36,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("{id}")]
         public PurchasedAdvertisementDTO Get(int id)
         {
-            return ModelsToDTO.PurchasedAdvertisementToDTO(purchasedAdvRepository.GetById(id));
+            return ModelsToDTO.PurchasedAdvertisementToDTO(_purchasedAdvRepository.GetById(id));
         }
 
         // GET api/<PurchasedAdvertisementController>/byUserId/5
@@ -42,7 +44,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("byUserId/{id}")]
         public IEnumerable<PurchasedAdvertisementDTO> GetByUserId(int id)
         {
-            return purchasedAdvRepository.GetByUserId(id).Select(p => ModelsToDTO.PurchasedAdvertisementToDTO(p));
+            return _purchasedAdvRepository.GetByUserId(id).Select(p => ModelsToDTO.PurchasedAdvertisementToDTO(p));
         }
 
         // GET api/<PurchasedAdvertisementController>/byAdvertisementId/5
@@ -50,7 +52,7 @@ namespace MarketplacePL.Controllers
         [HttpGet("byAdvertisementId/{id}")]
         public ActionResult<PurchasedAdvertisementDTO> GetByAdvertisementId(int id)
         {
-            PurchasedAdvertisement? purchasedAdv = purchasedAdvRepository.GetByAdvertisementId(id);
+            PurchasedAdvertisement? purchasedAdv = _purchasedAdvRepository.GetByAdvertisementId(id);
             if (purchasedAdv != null)
             {
                 return ModelsToDTO.PurchasedAdvertisementToDTO(purchasedAdv);
@@ -65,7 +67,7 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
                     PurchasedAdvertisement purchasedAdv = new PurchasedAdvertisement
@@ -74,9 +76,9 @@ namespace MarketplacePL.Controllers
                         AdvertisementId = obj.AdvertisementId,
                         PurchaseDate = obj.PurchaseDate
                     };
-                    purchasedAdvRepository.Insert(purchasedAdv);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _purchasedAdvRepository.Insert(purchasedAdv);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     return Ok();
                 }
@@ -84,7 +86,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -97,7 +99,7 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
                     PurchasedAdvertisement purchasedAdv = new PurchasedAdvertisement
@@ -107,9 +109,9 @@ namespace MarketplacePL.Controllers
                         AdvertisementId = obj.AdvertisementId,
                         PurchaseDate = obj.PurchaseDate
                     };
-                    purchasedAdvRepository.Update(purchasedAdv);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _purchasedAdvRepository.Update(purchasedAdv);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     return Ok();
                 }
@@ -117,7 +119,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -130,15 +132,15 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
-                    var entity = purchasedAdvRepository.GetById(id);
+                    var entity = _purchasedAdvRepository.GetById(id);
                     if (entity != null)
                     {
-                        purchasedAdvRepository.Delete(entity);
-                        unitOfWork.Save();
-                        unitOfWork.Commit();
+                        _purchasedAdvRepository.Delete(entity);
+                        _unitOfWork.Save();
+                        _unitOfWork.Commit();
 
                         return Ok();
                     }
@@ -147,7 +149,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }

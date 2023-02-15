@@ -1,3 +1,4 @@
+using Marketplace.API.Service;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddSingleton<UnitOfWorkService>();
 
 string? jwtAudience = builder.Configuration["Jwt:Audience"];
 string? jwtIssuer = builder.Configuration["Jwt:Issuer"];

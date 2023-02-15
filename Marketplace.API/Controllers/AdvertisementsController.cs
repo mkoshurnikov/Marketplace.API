@@ -1,4 +1,5 @@
-﻿using MarketplaceBL.ModelsDTO;
+﻿using Marketplace.API.Service;
+using MarketplaceBL.ModelsDTO;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Contracts;
 using MarketplaceDAL.Data;
@@ -16,12 +17,13 @@ namespace MarketplacePL.Controllers
     [ApiController]
     public class AdvertisementsController : ControllerBase
     {
-        private UnitOfWork<MarketplaceDbContext> unitOfWork = new UnitOfWork<MarketplaceDbContext>();
-        private IAdvertisementRepository advRepository;
-        private ILogger<AdvertisementsController> _logger;
-        public AdvertisementsController(ILogger<AdvertisementsController> logger)
+        private readonly UnitOfWork<MarketplaceDbContext> _unitOfWork;
+        private readonly IAdvertisementRepository _advRepository;
+        private readonly ILogger<AdvertisementsController> _logger;
+        public AdvertisementsController(ILogger<AdvertisementsController> logger, UnitOfWorkService unitOfWorkService)
         {
-            advRepository = new AdvertisementRepository(unitOfWork);
+            _unitOfWork = unitOfWorkService.GetUnitOfWork();
+            _advRepository = new AdvertisementRepository(_unitOfWork);
             _logger = logger;
         }
         // GET: api/<AdvertisementsController>
@@ -29,14 +31,14 @@ namespace MarketplacePL.Controllers
         [HttpGet]
         public IEnumerable<AdvertisementDTO> Get()
         {
-            return advRepository.GetAll().Select(a => ModelsToDTO.AdvertisementToDTO(a));
+            return _advRepository.GetAll().Select(a => ModelsToDTO.AdvertisementToDTO(a));
         }
 
         // GET api/<AdvertisementsController>/5
         [HttpGet("{id}")]
         public AdvertisementDTO Get(int id)
         {
-            return ModelsToDTO.AdvertisementToDTO(advRepository.GetById(id));
+            return ModelsToDTO.AdvertisementToDTO(_advRepository.GetById(id));
         }
 
         // GET api/<AdvertisementsController>/isActive?isActive=true
@@ -45,16 +47,16 @@ namespace MarketplacePL.Controllers
         {
             if (isActive)
             {
-                return advRepository.GetActiveAdvertisements().Select(a => ModelsToDTO.AdvertisementToDTO(a));
+                return _advRepository.GetActiveAdvertisements().Select(a => ModelsToDTO.AdvertisementToDTO(a));
             }
-            return advRepository.GetInnactiveAdvertisements().Select(a => ModelsToDTO.AdvertisementToDTO(a));
+            return _advRepository.GetInnactiveAdvertisements().Select(a => ModelsToDTO.AdvertisementToDTO(a));
         }
 
         // GET api/<AdvertisementsController>/bySellerId?id=1
         [HttpGet("bySellerId")]
         public IEnumerable<AdvertisementDTO> GetBySellerId(int id)
         {
-            return advRepository.GetAdvertisementsBySellerId(id).Select(a => ModelsToDTO.AdvertisementToDTO(a));
+            return _advRepository.GetAdvertisementsBySellerId(id).Select(a => ModelsToDTO.AdvertisementToDTO(a));
         }
 
         // GET api/<AdvertisementsController>/byAdvTypes?advType1=tname1&advType2=tname2&advType3=tname3
@@ -62,7 +64,7 @@ namespace MarketplacePL.Controllers
         public IEnumerable<AdvertisementDTO> GetByAdvTypeNames(string? advType1, string? advType2, string? advType3)
         {
             string [] advTypes = new string [] { advType1, advType2, advType3 };
-            return advRepository.GetAdvertisementsByTypes(advTypes).Select(a => ModelsToDTO.AdvertisementToDTO(a));
+            return _advRepository.GetAdvertisementsByTypes(advTypes).Select(a => ModelsToDTO.AdvertisementToDTO(a));
         }
 
         // POST api/<AdvertisementsController>
@@ -72,7 +74,7 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
                     Advertisement adv = new Advertisement
@@ -85,9 +87,9 @@ namespace MarketplacePL.Controllers
                         Description = obj.Description,
                         YearOfManufacture = obj.YearOfManufacture
                     };
-                    advRepository.Insert(adv);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _advRepository.Insert(adv);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     _logger.LogInformation("New advertisement has been added.");
 
@@ -97,7 +99,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -111,7 +113,7 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
                     Advertisement adv = new Advertisement
@@ -125,9 +127,9 @@ namespace MarketplacePL.Controllers
                         Description = obj.Description,
                         YearOfManufacture = obj.YearOfManufacture
                     };
-                    advRepository.Update(adv);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _advRepository.Update(adv);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     _logger.LogInformation($"Advertisement(id = {adv.Id} has been changed.");
 
@@ -137,7 +139,7 @@ namespace MarketplacePL.Controllers
             }   
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -150,14 +152,14 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
-                    Advertisement dbEntity = advRepository.GetById(obj.Id);
+                    Advertisement dbEntity = _advRepository.GetById(obj.Id);
                     Advertisement adv = ModelsToDTO.AdvertisementPatchToDbModel(obj, dbEntity);
-                    advRepository.Update(adv);
-                    unitOfWork.Save();
-                    unitOfWork.Commit();
+                    _advRepository.Update(adv);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
 
                     _logger.LogInformation($"Advertisement(id = {adv.Id} has been changed.");
 
@@ -167,7 +169,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
@@ -180,15 +182,15 @@ namespace MarketplacePL.Controllers
         {
             try
             {
-                unitOfWork.CreateTransaction();
+                _unitOfWork.CreateTransaction();
                 if (ModelState.IsValid)
                 {
-                    var entity = advRepository.GetById(id);
+                    var entity = _advRepository.GetById(id);
                     if (entity != null)
                     {
-                        advRepository.Delete(entity);
-                        unitOfWork.Save();
-                        unitOfWork.Commit();
+                        _advRepository.Delete(entity);
+                        _unitOfWork.Save();
+                        _unitOfWork.Commit();
 
                         _logger.LogInformation($"Advertisement(id = {id} has been deleted.");
 
@@ -199,7 +201,7 @@ namespace MarketplacePL.Controllers
             }
             catch (Exception ex)
             {
-                unitOfWork.Rollback();
+                _unitOfWork.Rollback();
                 Console.WriteLine(ex.Message);
                 return BadRequest();
             }
