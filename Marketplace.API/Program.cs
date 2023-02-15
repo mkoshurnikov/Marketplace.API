@@ -3,11 +3,6 @@ using Marketplace.API.Services;
 using MarketplaceBL.Services;
 using MarketplaceDAL.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +15,7 @@ builder.Services.AddSingleton<UnitOfWorkService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearerConfiguration(builder.Configuration["Jwt:Issuer"], builder.Configuration["Jwt:Audience"], builder.Configuration["Jwt:Key"]);
+    .AddJwtBearerConfiguration(builder.Configuration);
 
 builder.Services.AddDbContext<MarketplaceDbContext>();
 builder.Services
