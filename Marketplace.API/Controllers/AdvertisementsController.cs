@@ -36,9 +36,14 @@ namespace MarketplacePL.Controllers
 
         // GET api/<AdvertisementsController>/5
         [HttpGet("{id}")]
-        public AdvertisementDTO Get(int id)
+        public IActionResult Get(int id)
         {
-            return ModelsToDTO.AdvertisementToDTO(_advRepository.GetById(id));
+            var advertisement = _advRepository.GetById(id);
+            if (advertisement != null)
+            {
+                return Ok(ModelsToDTO.AdvertisementToDTO(advertisement));
+            }
+            return BadRequest();
         }
 
         // GET api/<AdvertisementsController>/isActive?isActive=true
