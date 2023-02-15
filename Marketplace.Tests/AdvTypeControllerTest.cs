@@ -5,6 +5,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using Marketplace.API.Services;
+using Marketplace.BL.Services;
+using Microsoft.AspNetCore.Identity;
+using Moq;
+using MarketplaceDAL.Models;
 
 namespace Marketplace.Test
 {
@@ -13,34 +17,37 @@ namespace Marketplace.Test
         [Fact]
         public void WhenGettingAllAdvTypes_ThenReturnAllAdvTypes()
         {
-            var logger = new Logger<AdvTypesController>(new LoggerFactory());
+            var logger = new Logger<ServiceManager>(new LoggerFactory());
             var unitOfWorkService = new UnitOfWorkService();
+            var userManager = new Mock<UserManager<IdentityUser>>(Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var jwtService = new Mock<JwtService>(null);
+            var services = new ServiceManager(logger, unitOfWorkService, userManager.Object, jwtService.Object);
+            var advTypeController = new AdvTypesController(services);
 
-            var advTypeController = new AdvTypesController(logger, unitOfWorkService);
-
-            var result = advTypeController.Get() as ObjectResult;
-            var advTypes = result?.Value as IEnumerable<AdvTypeDTO>;
+            var result = advTypeController.Get();
 
             Assert.NotNull(result);
-            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
-            Assert.Equal(3, advTypes?.Skip(2).First().Id);
-            Assert.Equal("advtype2", advTypes?.Skip(1).First().AdvTypeName);
+            Assert.Equal(3, result.Skip(2).First().Id);
+            Assert.Equal("advtype2", result.Skip(1).First().AdvTypeName);
         }
 
         [Fact]
         public void WhenGettingAdvTypeById_ThenReturnAdvType()
         {
-            var logger = new Logger<AdvTypesController>(new LoggerFactory());
+            var logger = new Logger<ServiceManager>(new LoggerFactory());
             var unitOfWorkService = new UnitOfWorkService();
-
-            var advTypeController = new AdvTypesController(logger, unitOfWorkService);
+            var userManager = new Mock<UserManager<IdentityUser>>(Mock.Of<IUserStore<IdentityUser>>(), null, null, null, null, null, null, null, null);
+            var jwtService = new Mock<JwtService>(null);
+            var services = new ServiceManager(logger, unitOfWorkService, userManager.Object, jwtService.Object);
+            var advTypeController = new AdvTypesController(services);
 
             int id = 1;
             var result = advTypeController.Get(id) as ObjectResult;
             var advType = result?.Value as AdvTypeDTO;
 
             Assert.Equal(StatusCodes.Status200OK, result?.StatusCode);
-            Assert.NotNull(result?.Value as AdvTypeDTO);
+            Assert.NotNull(advType);
+            Assert.IsType<AdvTypeDTO>(advType);
             Assert.Equal("advtype1", advType?.AdvTypeName);
         }
     }
