@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MarketplaceBL.ResourceModels
+namespace Marketplace.API.ResourceModels
 {
     public class AuthenticationResponse
     {

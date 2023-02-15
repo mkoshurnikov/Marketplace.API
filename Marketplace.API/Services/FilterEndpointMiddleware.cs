@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MarketplaceBL.Services
+namespace Marketplace.API.Services
 {
     public class FilterEndpointMiddleware
     {

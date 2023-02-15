@@ -1,4 +1,4 @@
-﻿using MarketplaceBL.ResourceModels;
+﻿using Marketplace.API.ResourceModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MarketplaceBL.Services
+namespace Marketplace.API.Services
 {
     public class JwtService
     {
